@@ -112,17 +112,28 @@ public class MainController {
 
     @PostMapping("/settings")
     public String updateSettings(@AuthenticationPrincipal UserDetails userDetails,
-                                 @ModelAttribute User updatedUser) {
+                                 @ModelAttribute User updatedUser,
+                                 @RequestParam(value = "egovPassword", required = false) String newPassword) {
         Optional<User> optUser = userService.findByUsername(userDetails.getUsername());
 
         if (optUser.isPresent()) {
             User user = optUser.get();
 
-            // Only update allowed fields
+            user.setName(updatedUser.getName());  // Add this if you want to update the name
             user.setEmail(updatedUser.getEmail());
-            user.setEgovPassword(updatedUser.getEgovPassword());
             user.setAttendanceThreshold(updatedUser.getAttendanceThreshold());
             user.setNotificationsEnabled(updatedUser.getNotificationsEnabled());
+
+            // Only update password if one was provided
+            if (newPassword != null && !newPassword.trim().isEmpty()) {
+                user.setEgovPassword(newPassword);
+            }
+
+            // Add logging to verify values before saving
+            System.out.println("Updating user: " + user.getUsername());
+            System.out.println("New Email: " + user.getEmail());
+            System.out.println("New Threshold: " + user.getAttendanceThreshold());
+            System.out.println("Notifications: " + user.getNotificationsEnabled());
 
             userService.updateUser(user);
             return "redirect:/settings?success";

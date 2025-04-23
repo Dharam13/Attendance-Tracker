@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charusat Attendance Tracker - Settings</title>
+    <link rel="stylesheet" th:href="@{/css/settings.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+
+<body>
+<div class="particles-container">
+    <div class="particles"></div>
+</div>
+
+<div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>CHARUSAT<span class="highlight"> AT</span></h1>
+            <div class="pulse-line"></div>
+        </div>
+
+        <nav class="nav-menu">
+            <ul>
+                <li>
+                    <a href="#" th:href="@{/dashboard}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" th:href="@{/subjects}">
+                        <i class="fas fa-book"></i>
+                        <span>Subjects</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" th:href="@{/notifications}">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="#" th:href="@{/settings}">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+                <h3 th:text="${user.name}">User Name</h3>
+                <p th:text="${user.email}">user@example.com</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <div class="header-title">
+                <h2>Settings</h2>
+                <p th:text="${#temporals.format(#temporals.createNow(), 'EEEE, MMMM dd, yyyy')}">Wednesday, April 23, 2025</p>
+            </div>
+        </header>
+
+        <!-- Alert Messages -->
+        <div class="alert success" th:if="${param.success}">
+            Settings updated successfully!
+        </div>
+
+        <div class="alert error" th:if="${param.error}">
+            Failed to update settings. Please try again.
+        </div>
+
+        <!-- Settings Form -->
+        <div class="settings-container">
+            <div class="section-header">
+                <h3>Profile Information</h3>
+            </div>
+
+            <form th:action="@{/settings}" th:object="${user}" method="post" class="settings-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" th:field="*{name}" required>
+                    <div class="glow-line"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" th:field="*{email}" required>
+                    <div class="glow-line"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" th:field="*{username}" readonly>
+                    <div class="glow-line"></div>
+                    <p class="field-note">Username cannot be changed</p>
+                </div>
+
+                <div class="section-header">
+                    <h3>eGov Credentials</h3>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-icon">i</div>
+                    <p>Your eGov credentials are securely stored and only used to automatically track your attendance.</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="egovId">eGov ID</label>
+                    <input type="text" id="egovId" th:field="*{egovId}" required>
+                    <div class="glow-line"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="egovPassword">eGov Password</label>
+                    <input type="password" id="egovPassword" th:field="*{egovPassword}" placeholder="••••••••">
+                    <div class="glow-line"></div>
+                    <p class="field-note">Leave blank to keep current password</p>
+                </div>
+
+                <div class="section-header">
+                    <h3>Attendance Settings</h3>
+                </div>
+
+                <div class="form-group slider-group">
+                    <label for="attendanceThreshold" class="slider-label">Attendance Alert Threshold</label>
+                    <div class="slider-container">
+                        <input type="range" id="attendanceThreshold" th:field="*{attendanceThreshold}" min="50" max="90" step="5" value="75">
+                        <div class="threshold-value"><span id="thresholdValue">75</span>%</div>
+                    </div>
+                    <p class="slider-description">You'll be notified when your attendance falls below this threshold</p>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="notificationsEnabled" th:field="*{notificationsEnabled}">
+                    <span class="checkbox-label">Enable Notifications</span>
+                    <div class="checkbox-indicator"></div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="neon-button">
+                        <i class="fas fa-save"></i>
+                        <span>Save Settings</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Threshold slider
+        const attendanceSlider = document.getElementById('attendanceThreshold');
+        const thresholdValue = document.getElementById('thresholdValue');
+
+        if (attendanceSlider && thresholdValue) {
+            thresholdValue.textContent = attendanceSlider.value;
+            attendanceSlider.addEventListener('input', () => {
+                thresholdValue.textContent = attendanceSlider.value;
+            });
+        }
+
+        // Auto-dismiss alerts after 5 seconds
+        const alerts = document.querySelectorAll('.alert');
+        if (alerts.length > 0) {
+            setTimeout(() => {
+                alerts.forEach(alert => {
+                    alert.style.display = 'none';
+                });
+            }, 5000);
+        }
+    });
+</script>
+</body>
+</html>
