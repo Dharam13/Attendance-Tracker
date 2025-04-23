@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charusat Attendance Tracker - Register</title>
+    <link rel="stylesheet" th:href="@{/css/register.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <div class="register-box">
+        <div class="logo">
+            <h1>CHARUSAT<span class="highlight"> ATTENDANCE TRACKER</span></h1>
+            <div class="pulse-line"></div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert error" th:text="${errorMessage}"></div>
+
+        <div class="register-steps">
+            <div class="step active" id="step-1">
+                <span class="step-number">1</span>
+                <span class="step-label">Account</span>
+            </div>
+            <div class="step" id="step-2">
+                <span class="step-number">2</span>
+                <span class="step-label">Charusat</span>
+            </div>
+            <div class="step" id="step-3">
+                <span class="step-number">3</span>
+                <span class="step-label">Finish</span>
+            </div>
+            <div class="steps-line"></div>
+        </div>
+
+        <form th:action="@{/register}" th:object="${user}" method="post" class="neon-form" id="register-form">
+            <!-- Step 1: Account Info -->
+            <div class="form-step" id="form-step-1">
+                <h2>Create Account</h2>
+
+                <div class="form-group">
+                    <input type="text" id="name" th:field="*{name}" required>
+                    <label for="name">Full Name</label>
+                    <div class="glow-line"></div>
+                    <div th:if="${#fields.hasErrors('name')}" class="field-error" th:errors="*{name}"></div>
+                </div>
+
+                <div class="form-group">
+                    <input type="email" id="email" th:field="*{email}" required>
+                    <label for="email">Email Address</label>
+                    <div class="glow-line"></div>
+                    <div th:if="${#fields.hasErrors('email')}" class="field-error" th:errors="*{email}"></div>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" id="username" th:field="*{username}" required>
+                    <label for="username">Username</label>
+                    <div class="glow-line"></div>
+                    <div th:if="${#fields.hasErrors('username')}" class="field-error" th:errors="*{username}"></div>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" id="password" th:field="*{password}" required>
+                    <label for="password">Password</label>
+                    <div class="glow-line"></div>
+                    <div th:if="${#fields.hasErrors('password')}" class="field-error" th:errors="*{password}"></div>
+                </div>
+
+                <div class="button-container">
+                    <button type="button" class="neon-button next-step">
+                        <span class="button-text">NEXT</span>
+                        <span class="button-glow"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Charusat eGov Info -->
+            <div class="form-step hidden" id="form-step-2">
+                <h2>Charusat eGov Info</h2>
+
+                <div class="form-group">
+                    <input type="text" id="egovId" th:field="*{egovId}" required>
+                    <label for="egovId">eGov ID</label>
+                    <div class="glow-line"></div>
+                    <div th:if="${#fields.hasErrors('egovId')}" class="field-error" th:errors="*{egovId}"></div>
+                </div>
+
+                <div class="form-group">
+                    <input type="password" id="egovPassword" th:field="*{egovPassword}" required>
+                    <label for="egovPassword">eGov Password</label>
+                    <div class="glow-line"></div>
+                    <div th:if="${#fields.hasErrors('egovPassword')}" class="field-error" th:errors="*{egovPassword}"></div>
+                </div>
+
+                <div class="info-box">
+                    <div class="info-icon">i</div>
+                    <p>Your eGov credentials are securely stored and only used to automatically track your attendance.</p>
+                </div>
+
+                <div class="button-container">
+                    <button type="button" class="outline-button prev-step">
+                        <span class="button-text">BACK</span>
+                    </button>
+                    <button type="button" class="neon-button next-step">
+                        <span class="button-text">NEXT</span>
+                        <span class="button-glow"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Notification Settings -->
+            <div class="form-step hidden" id="form-step-3">
+                <h2>Notification Settings</h2>
+
+                <div class="form-group slider-group">
+                    <label for="attendanceThreshold" class="slider-label">Attendance Alert Threshold</label>
+                    <div class="slider-container">
+                        <input type="range" id="attendanceThreshold" th:field="*{attendanceThreshold}" min="50" max="90" step="5" value="75">
+                        <div class="threshold-value"><span id="thresholdValue">75</span>%</div>
+                    </div>
+                    <p class="slider-description">You'll be notified when your attendance falls below this threshold</p>
+                    <div th:if="${#fields.hasErrors('attendanceThreshold')}" class="field-error" th:errors="*{attendanceThreshold}"></div>
+                </div>
+
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="notificationsEnabled" th:field="*{notificationsEnabled}" value="true">
+                    <span class="checkbox-label">Enable Email Notifications</span>
+                    <div class="checkbox-indicator"></div>
+                </div>
+
+                <div class="button-container">
+                    <button type="button" class="outline-button prev-step">
+                        <span class="button-text">BACK</span>
+                    </button>
+                    <button type="submit" class="neon-button">
+                        <span class="button-text">COMPLETE</span>
+                        <span class="button-glow"></span>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <div class="links">
+            <p>Already have an account? <a th:href="@{/login}" class="neon-link">Login</a></p>
+        </div>
+    </div>
+
+    <div class="particles-container">
+        <div class="particles"></div>
+    </div>
+</div>
+
+<script th:src="@{/js/register.js}"></script>
+<script>
+    // Slider value update
+    const attendanceSlider = document.getElementById('attendanceThreshold');
+    const thresholdValue = document.getElementById('thresholdValue');
+    if (attendanceSlider && thresholdValue) {
+        thresholdValue.textContent = attendanceSlider.value;
+        attendanceSlider.addEventListener('input', () => {
+            thresholdValue.textContent = attendanceSlider.value;
+        });
+    }
+</script>
+</body>
+</html>

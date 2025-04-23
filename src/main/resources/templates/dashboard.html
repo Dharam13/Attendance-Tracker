@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charusat Attendance Tracker - Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.1.0/dist/chartjs-plugin-annotation.min.js"></script>
+    <!-- Added CSRF meta tags inside head tag -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+</head>
+
+<body>
+<div class="particles-container">
+    <div class="particles"></div>
+</div>
+
+<div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>CHARUSAT<span class="highlight"> AT</span></h1>
+            <div class="pulse-line"></div>
+        </div>
+
+        <nav class="nav-menu">
+            <ul>
+                <li class="active">
+                    <a href="#" th:href="@{/dashboard}">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#subjects-section" class="scroll-link">
+                        <i class="fas fa-book"></i>
+                        <span>Subjects</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#notifications-section" class="scroll-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                        <span class="notification-badge" th:if="${unreadNotifications > 0}" th:text="${unreadNotifications}">3</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" th:href="@{/settings}">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" th:href="@{/logout}">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+                <h3 th:text="${user.name}">User Name</h3>
+                <p th:text="${user.email}">user@example.com</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="header">
+            <div class="header-title">
+                <h2>Dashboard</h2>
+                <p th:text="${#temporals.format(#temporals.createNow(), 'EEEE, MMMM dd, yyyy')}">Thursday, April 18, 2024</p>
+            </div>
+
+            <div class="header-actions">
+                <button class="neon-button" id="sync-button">
+                    <i class="fas fa-sync-alt"></i>
+                    <span>Sync Attendance</span>
+                </button>
+                <div class="notification-icon">
+                    <a href="#notifications-section" class="scroll-link">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge" th:if="${unreadNotifications > 0}" th:text="${unreadNotifications}">3</span>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Alert Messages -->
+        <div class="alert success" th:if="${successMessage}" th:text="${successMessage}">
+            Attendance data synced successfully!
+        </div>
+
+        <div class="alert error" th:if="${errorMessage}" th:text="${errorMessage}">
+            Failed to sync attendance data. Please try again.
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Average Attendance</h3>
+                    <p th:text="${#numbers.formatDecimal(averageAttendance, 1, 1) + '%'}">85.5%</p>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress" th:style="'width:' + ${averageAttendance} + '%'"
+                         th:classappend="${averageAttendance < user.attendanceThreshold ? 'danger' : 'safe'}"></div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Total Subjects</h3>
+                    <p th:text="${totalSubjects}">8</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon warning" th:if="${belowThresholdCount > 0}">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-icon" th:unless="${belowThresholdCount > 0}">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>Below Threshold</h3>
+                    <p th:text="${belowThresholdCount}">2</p>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>New Alerts</h3>
+                    <p th:text="${unreadNotifications}">3</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Overview Chart -->
+        <div class="chart-section">
+            <div class="section-header">
+                <h3>Attendance Overview</h3>
+                <div class="threshold-line">
+                    <span>Threshold: </span>
+                    <span th:text="${user.attendanceThreshold + '%'}">75%</span>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="attendanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Subject Cards -->
+        <div class="section-header" id="subjects-section">
+            <h3>Subject Attendance</h3>
+            <a href="#" th:href="@{/subjects}" class="neon-link">View All</a>
+        </div>
+
+        <div class="subjects-container">
+            <div class="subject-card" th:each="subject : ${subjects}" th:classappend="${subject.currentAttendance < user.attendanceThreshold ? 'danger' : ''}">
+                <div class="subject-header">
+                    <h4 th:text="${subject.name}">Operating Systems</h4>
+                    <span class="subject-code" th:text="${subject.code}">CS301</span>
+                </div>
+
+                <div class="attendance-display">
+                    <div class="circular-progress">
+                        <svg viewBox="0 0 36 36" class="circular-chart">
+                            <path class="circle-bg"
+                                  d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                            />
+                            <path class="circle"
+                                  th:classappend="${subject.currentAttendance < user.attendanceThreshold ? 'danger' : 'safe'}"
+                                  th:stroke-dasharray="${subject.currentAttendance + ', 100'}"
+                                  d="M18 2.0845
+                                        a 15.9155 15.9155 0 0 1 0 31.831
+                                        a 15.9155 15.9155 0 0 1 0 -31.831"
+                            />
+                            <text x="18" y="20.35" class="percentage" th:text="${#numbers.formatDecimal(subject.currentAttendance, 1, 1) + '%'}">75.5%</text>
+                        </svg>
+                    </div>
+
+                    <!-- Attendance Record from the latest entry -->
+                    <div class="attendance-details" th:with="record=${subject.attendanceRecords != null && !subject.attendanceRecords.empty ? subject.attendanceRecords[0] : null}">
+                        <div class="detail-row">
+                            <span>Total Classes:</span>
+                            <span th:text="${record != null ? record.totalClasses : 'N/A'}">42</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Attended:</span>
+                            <span th:text="${record != null ? record.attendedClasses : 'N/A'}">35</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Last Updated:</span>
+                            <span th:text="${record != null ? #temporals.format(record.recordedAt, 'dd MMM, HH:mm') : 'N/A'}">18 Apr, 14:30</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subject-footer">
+                    <span class="status" th:classappend="${subject.currentAttendance < user.attendanceThreshold ? 'danger' : 'safe'}">
+                        <i class="fas fa-exclamation-circle" th:if="${subject.currentAttendance < user.attendanceThreshold}"></i>
+                        <i class="fas fa-check-circle" th:unless="${subject.currentAttendance < user.attendanceThreshold}"></i>
+                        <span th:text="${subject.currentAttendance < user.attendanceThreshold ? 'Below Threshold' : 'Good Standing'}">Below Threshold</span>
+                    </span>
+                    <a href="#" th:href="@{/subjects/{id}(id=${subject.id})}" class="view-details">View Details</a>
+                </div>
+            </div>
+
+            <!-- Show this if no subjects are available -->
+            <div class="no-data" th:if="${subjects.empty}">
+                <i class="fas fa-folder-open"></i>
+                <p>No subjects found. Click the Sync button to fetch your attendance data.</p>
+            </div>
+        </div>
+
+        <!-- Recent Notifications -->
+        <div class="section-header" id="notifications-section">
+            <h3>Recent Notifications</h3>
+            <a href="#" th:href="@{/notifications}" class="neon-link">View All</a>
+        </div>
+
+        <div class="notifications-container">
+            <div class="notification-item" th:each="notification : ${recentNotifications}">
+                <div class="notification-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="notification-content">
+                    <p th:text="${notification.message}">Your attendance in Operating Systems has dropped below the threshold.</p>
+                    <span class="notification-time" th:text="${#temporals.format(notification.createdAt, 'dd MMM, HH:mm')}">18 Apr, 14:30</span>
+                </div>
+            </div>
+
+            <!-- Show this if no notifications are available -->
+            <div class="no-data" th:if="${recentNotifications.empty}">
+                <i class="fas fa-bell-slash"></i>
+                <p>No new notifications. You're all caught up!</p>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script th:inline="javascript">
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get threshold value from the page
+        let attendanceThreshold = 70; // Default value
+        try {
+            const thresholdText = document.querySelector('.threshold-line span:last-child')?.textContent;
+            if (thresholdText) {
+                const thresholdMatch = thresholdText.match(/(\d+)/);
+                if (thresholdMatch && thresholdMatch[1]) {
+                    attendanceThreshold = parseInt(thresholdMatch[1], 10);
+                }
+            }
+        } catch (e) {
+            console.warn('Could not parse threshold, using default', e);
+        }
+
+        // Sample data for demonstration (replace with your actual data)
+        const sampleSubjects = [
+            { name: 'SE', currentAttendance: 77.2, code: 'CE266' },
+            { name: 'HVE', currentAttendance: 68.5, code: 'HS1103A' },
+            { name: 'DBMS', currentAttendance: 85.1, code: 'CE253' },
+            { name: 'PIP', currentAttendance: 65.8, code: 'CE259' },
+            { name: 'MCWC', currentAttendance: 83.7, code: 'CE254' }
+        ];
+
+        // Try to get subjects data
+        let subjectsData = [];
+
+        // Option 1: Check if data is available in a global variable
+        if (typeof window.subjectsData !== 'undefined') {
+            subjectsData = window.subjectsData;
+        }
+        // Option 2: Try to extract data from DOM
+        else {
+            const subjectCards = document.querySelectorAll('.subject-card');
+            if (subjectCards.length > 0) {
+                subjectsData = Array.from(subjectCards).map(card => {
+                    const name = card.querySelector('.subject-header h4')?.textContent || '';
+                    const code = card.querySelector('.subject-code')?.textContent || '';
+                    const attendanceText = card.querySelector('.percentage')?.textContent || '0%';
+                    const attendance = parseFloat(attendanceText.replace('%', '')) || 0;
+
+                    return {
+                        name: name,
+                        code: code,
+                        currentAttendance: attendance
+                    };
+                });
+            }
+            // Option 3: Fall back to sample data
+            else {
+                subjectsData = sampleSubjects;
+                console.log('Using sample data for chart');
+            }
+        }
+
+        // Initialize the chart
+        const ctx = document.getElementById('attendanceChart');
+        if (!ctx) {
+            console.error('Chart canvas element not found');
+            return;
+        }
+
+        // Prepare data for the chart
+        const labels = subjectsData.map(subject => subject.name);
+        const data = subjectsData.map(subject => subject.currentAttendance);
+
+        const backgroundColors = data.map(value =>
+            value < attendanceThreshold
+                ? 'rgba(255, 99, 132, 0.7)' // Red for below threshold
+                : 'rgba(0, 243, 255, 0.7)'  // Blue for above threshold
+        );
+
+        const borderColors = data.map(value =>
+            value < attendanceThreshold
+                ? 'rgb(255, 99, 132)' // Red for below threshold
+                : 'rgb(0, 243, 255)'  // Blue for above threshold
+        );
+
+        // Create the chart
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Attendance Percentage',
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.raw.toFixed(1)}%`;
+                            }
+                        }
+                    },
+                    annotation: {
+                        annotations: {
+                            line1: {
+                                type: 'line',
+                                yMin: attendanceThreshold,
+                                yMax: attendanceThreshold,
+                                borderColor: 'rgba(255, 255, 255, 0.7)',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                label: {
+                                    content: `Threshold (${attendanceThreshold}%)`,
+                                    enabled: true,
+                                    position: 'end',
+                                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                                    color: 'white',
+                                    font: {
+                                        size: 12
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.2)'
+                        },
+                        ticks: {
+                            color: '#FFFFFF',
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.2)'
+                        },
+                        ticks: {
+                            color: '#FFFFFF',
+                            autoSkip: true,
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    }
+                }
+            }
+        });
+
+        // Set up other functionality
+        setupScrollLinks();
+        setupSyncButton();
+        autoHideAlerts();
+    });
+
+    // Keep your existing helper functions
+    function setupScrollLinks() {
+        const scrollLinks = document.querySelectorAll('.scroll-link');
+        scrollLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    const mainContent = document.querySelector('.main-content');
+                    const elementPosition = targetElement.offsetTop;
+                    mainContent.scrollTo({
+                        top: elementPosition - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+    }
+
+    function setupSyncButton() {
+        const syncButton = document.getElementById('sync-button');
+        if (syncButton) {
+            syncButton.addEventListener('click', function() {
+                const originalText = this.querySelector('span')?.textContent || 'Sync Attendance';
+                this.classList.add('loading');
+                if (this.querySelector('span')) {
+                    this.querySelector('span').textContent = 'Syncing...';
+                }
+                this.disabled = true;
+
+                const csrfToken = document.querySelector('meta[name="_csrf"]');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]');
+
+                if (!csrfToken || !csrfHeader) {
+                    console.error("CSRF tokens not found");
+                    showError("Security error. Please refresh the page and try again.");
+                    resetButton();
+                    return;
+                }
+
+                fetch('/sync-attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        [csrfHeader.content]: csrfToken.content
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Sync failed: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        window.location.reload();
+                    })
+                    .catch(error => {
+                        console.error('Sync error:', error);
+                        showError("Failed to sync attendance data. Please try again.");
+                        resetButton();
+                    });
+
+                function resetButton() {
+                    syncButton.classList.remove('loading');
+                    if (syncButton.querySelector('span')) {
+                        syncButton.querySelector('span').textContent = originalText;
+                    }
+                    syncButton.disabled = false;
+                }
+            });
+        }
+    }
+
+    function autoHideAlerts() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            }, 5000);
+        });
+    }
+
+    function showError(message) {
+        const existingAlert = document.querySelector('.alert.error');
+        if (existingAlert) {
+            existingAlert.textContent = message;
+            return;
+        }
+
+        const alertContainer = document.createElement('div');
+        alertContainer.className = 'alert error';
+        alertContainer.textContent = message;
+        document.querySelector('.header')?.insertAdjacentElement('afterend', alertContainer);
+
+        setTimeout(() => {
+            alertContainer.style.opacity = '0';
+            setTimeout(() => alertContainer.remove(), 500);
+        }, 5000);
+    }
+</script>
+
+</body>
+</html>
