@@ -50,7 +50,8 @@
 ## 📸 Screenshots
 
 <!-- Add screenshots of your dashboard or UI -->
-
+![Dashboard Screenshot](screenshots/dashboard1.png)
+![Dashboard Screenshot](screenshots/dashboard2.png)
 
 ## 🧠 How It Works
 
