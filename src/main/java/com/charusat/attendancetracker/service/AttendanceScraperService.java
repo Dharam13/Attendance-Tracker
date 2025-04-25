@@ -68,27 +68,22 @@ public class AttendanceScraperService {
         ChromeOptions options = new ChromeOptions();
 
         // Essential options for running Chrome in a container
-        options.addArguments("--headless=new");  // Updated headless argument
+        options.addArguments("--headless=new");
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-extensions");
-        options.addArguments("--window-size=1920,1080");
         options.addArguments("--remote-allow-origins=*");
 
-        // Add these to help with stability
-        options.addArguments("--disable-browser-side-navigation");
-        options.addArguments("--disable-infobars");
-        options.addArguments("--disable-setuid-sandbox");
-        options.addArguments("--ignore-certificate-errors");
+        // For the selenium/standalone-chrome image
+        options.addArguments("--disable-extensions");
 
-        // Specify the Chrome binary path for containerized environments
-        options.setBinary("/usr/bin/google-chrome-stable");
-
-        // Let WebDriverManager handle ChromeDriver setup if needed
-        WebDriverManager.chromedriver().setup();
-
-        return new ChromeDriver(options);
+        // Use RemoteWebDriver to connect to the Chrome instance
+        try {
+            return new ChromeDriver(options);
+        } catch (Exception e) {
+            log.error("Error creating ChromeDriver: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 
     private void login(WebDriver driver, WebDriverWait wait, User user) {
