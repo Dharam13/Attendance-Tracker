@@ -1,34 +1,39 @@
-FROM maven:3.8-openjdk-17 AS build
-WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests
+FROM eclipse-temurin:17-jdk
 
-FROM openjdk:17-slim
 WORKDIR /app
 
-# Install Chrome and required dependencies
+# Install Chrome dependencies
 RUN apt-get update && apt-get install -y \
     wget \
     gnupg \
     unzip \
-    curl \
-    libglib2.0-0 \
+    fonts-liberation \
+    libasound2 \
+    libatk-bridge2.0-0 \
+    libatk1.0-0 \
+    libcups2 \
+    libdbus-1-3 \
+    libgbm1 \
+    libnspr4 \
     libnss3 \
-    libgconf-2-4 \
-    libfontconfig1 \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    xdg-utils \
+    --no-install-recommends
 
 # Install Chrome
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
     && apt-get update \
     && apt-get install -y google-chrome-stable \
-    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy application
-COPY --from=build /app/target/*.jar app.jar
+# Copy JAR file
+COPY target/*.jar app.jar
 
+# Expose the port (adjust if needed)
 EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# Run the application
+CMD ["java", "-jar", "app.jar"]

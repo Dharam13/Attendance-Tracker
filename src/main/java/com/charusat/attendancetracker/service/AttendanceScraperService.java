@@ -68,7 +68,7 @@ public class AttendanceScraperService {
         ChromeOptions options = new ChromeOptions();
 
         // Essential options for running Chrome in a container
-        options.addArguments("--headless");
+        options.addArguments("--headless=new");  // Updated headless argument
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
@@ -81,6 +81,9 @@ public class AttendanceScraperService {
         options.addArguments("--disable-infobars");
         options.addArguments("--disable-setuid-sandbox");
         options.addArguments("--ignore-certificate-errors");
+
+        // Specify the Chrome binary path for containerized environments
+        options.setBinary("/usr/bin/google-chrome-stable");
 
         // Let WebDriverManager handle ChromeDriver setup if needed
         WebDriverManager.chromedriver().setup();
