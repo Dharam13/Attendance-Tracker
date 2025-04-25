@@ -4,6 +4,7 @@ import com.charusat.attendancetracker.entity.AttendanceRecord;
 import com.charusat.attendancetracker.entity.Subject;
 import com.charusat.attendancetracker.entity.User;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.*;
@@ -61,27 +62,43 @@ public class AttendanceScraperService {
         }
     }
 
+    @Value("${logging.level.org.openqa.selenium:INFO}")
+    private String seleniumLogLevel;
+
+    @PostConstruct
+    public void init() {
+        // Set selenium logging level
+        System.setProperty("webdriver.chrome.verboseLogging", "true");
+        System.setProperty("webdriver.chrome.logfile", "/tmp/chromedriver.log");
+        log.info("Selenium log level set to: {}", seleniumLogLevel);
+        log.info("Chrome binary located at: {}", "/opt/google/chrome/chrome");
+        log.info("ChromeDriver located at: {}", "/usr/bin/chromedriver");
+    }
+
     private WebDriver setupWebDriver() {
         log.info("Setting up WebDriver for containerized environment");
 
-        // Configure Chrome options for containerized environment
-        ChromeOptions options = new ChromeOptions();
-
-        // Essential options for running Chrome in a container
-        options.addArguments("--headless=new");
-        options.addArguments("--disable-gpu");
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--remote-allow-origins=*");
-
-        // For the selenium/standalone-chrome image
-        options.addArguments("--disable-extensions");
-
-        // Use RemoteWebDriver to connect to the Chrome instance
         try {
+            // Set system property for ChromeDriver (even though it's already set in CMD)
+            System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
+
+            ChromeOptions options = new ChromeOptions();
+            options.addArguments("--headless=new");
+            options.addArguments("--disable-gpu");
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--disable-extensions");
+            options.addArguments("--window-size=1920,1080");
+            options.addArguments("--remote-allow-origins=*");
+            options.setBinary("/opt/google/chrome/chrome");  // This is the Chrome binary path in selenium/standalone-chrome
+
+            // Skip WebDriverManager as ChromeDriver is already installed
+            // WebDriverManager.chromedriver().setup(); // Comment this out
+
+            log.info("Creating ChromeDriver with options: {}", options);
             return new ChromeDriver(options);
         } catch (Exception e) {
-            log.error("Error creating ChromeDriver: {}", e.getMessage(), e);
+            log.error("Error setting up WebDriver: {}", e.getMessage(), e);
             throw e;
         }
     }
