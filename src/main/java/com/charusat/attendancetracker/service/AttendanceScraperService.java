@@ -27,9 +27,6 @@ public class AttendanceScraperService {
 
     private final AttendanceService attendanceService;
 
-    @Value("${selenium.chrome-driver-path:}")
-    private String chromeDriverPath;
-
     @Value("${selenium.headless:true}")
     private boolean headless;
 
@@ -56,7 +53,7 @@ public class AttendanceScraperService {
 
             log.info("Finished attendance scraping for user: {}", user.getEgovId());
         } catch (Exception e) {
-            log.error("Error during attendance scraping for user {}: {}", user.getEgovId(), e.getMessage());
+            log.error("Error during attendance scraping for user {}: {}", user.getEgovId(), e.getMessage(), e);
         } finally {
             if (driver != null) {
                 driver.quit();
@@ -65,18 +62,28 @@ public class AttendanceScraperService {
     }
 
     private WebDriver setupWebDriver() {
-        // Setup ChromeDriver using WebDriverManager - let it handle everything
-        WebDriverManager.chromedriver().setup();
+        log.info("Setting up WebDriver for containerized environment");
 
-        // Configure Chrome options
+        // Configure Chrome options for containerized environment
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--start-maximized");
 
-        if (headless) {
-            options.addArguments("--headless");
-            options.addArguments("--disable-gpu");
-            options.addArguments("--window-size=1920,1080");
-        }
+        // Essential options for running Chrome in a container
+        options.addArguments("--headless");
+        options.addArguments("--disable-gpu");
+        options.addArguments("--no-sandbox");
+        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--disable-extensions");
+        options.addArguments("--window-size=1920,1080");
+        options.addArguments("--remote-allow-origins=*");
+
+        // Add these to help with stability
+        options.addArguments("--disable-browser-side-navigation");
+        options.addArguments("--disable-infobars");
+        options.addArguments("--disable-setuid-sandbox");
+        options.addArguments("--ignore-certificate-errors");
+
+        // Let WebDriverManager handle ChromeDriver setup if needed
+        WebDriverManager.chromedriver().setup();
 
         return new ChromeDriver(options);
     }
@@ -176,7 +183,7 @@ public class AttendanceScraperService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error extracting attendance data: {}", e.getMessage());
+            log.error("Error extracting attendance data: {}", e.getMessage(), e);
         }
 
         return subjects;
@@ -283,21 +290,6 @@ public class AttendanceScraperService {
             Thread.sleep(milliseconds);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-        }
-    }
-
-    /**
-     * Highlights an element by changing its background color temporarily
-     */
-    private void highlightElement(WebDriver driver, WebElement element) {
-        try {
-            JavascriptExecutor js = (JavascriptExecutor) driver;
-            String originalStyle = element.getAttribute("style");
-            js.executeScript("arguments[0].setAttribute('style', 'background: yellow; border: 2px solid red;');", element);
-            slowDown(1000); // Highlight for 1 second
-            js.executeScript("arguments[0].setAttribute('style', '" + originalStyle + "');", element);
-        } catch (Exception e) {
-            log.warn("Failed to highlight element: {}", e.getMessage());
         }
     }
 }
