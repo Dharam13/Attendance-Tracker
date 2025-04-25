@@ -1,8 +1,18 @@
+FROM maven:3.8-openjdk-17 AS build
+
+# Copy the project files
+WORKDIR /build
+COPY pom.xml .
+COPY src ./src
+
+# Build the project
+RUN mvn package -DskipTests
+
 FROM selenium/standalone-chrome:latest
 
 USER root
 
-# Install Java (Using adoptopenjdk is more reliable for containerized environments)
+# Install Java
 RUN apt-get update && apt-get install -y wget apt-transport-https \
     && mkdir -p /etc/apt/keyrings \
     && wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc \
@@ -14,8 +24,8 @@ RUN apt-get update && apt-get install -y wget apt-transport-https \
 # Set up app directory
 WORKDIR /app
 
-# Copy the JAR file
-COPY target/*.jar app.jar
+# Copy the JAR from the build stage
+COPY --from=build /build/target/*.jar app.jar
 
 # Expose port
 EXPOSE 8080
