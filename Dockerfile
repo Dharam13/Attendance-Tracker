@@ -14,9 +14,8 @@ USER root
 
 # Install Java
 RUN apt-get update && apt-get install -y wget apt-transport-https \
-    && mkdir -p /etc/apt/keyrings \
-    && wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | tee /etc/apt/keyrings/adoptium.asc \
-    && echo "deb [signed-by=/etc/apt/keyrings/adoptium.asc] https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list \
+    && wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | apt-key add - \
+    && echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list \
     && apt-get update \
     && apt-get install -y temurin-17-jdk \
     && rm -rf /var/lib/apt/lists/*
@@ -30,5 +29,9 @@ COPY --from=build /build/target/*.jar app.jar
 # Expose port
 EXPOSE 8080
 
-# Run the app with specific system properties for WebDriver
-CMD ["java", "-Dwebdriver.chrome.driver=/usr/bin/chromedriver", "-jar", "app.jar"]
+# Add a health check script
+RUN echo '#!/bin/bash\nwget -q --spider http://localhost:8080/health || exit 1' > /healthcheck.sh \
+    && chmod +x /healthcheck.sh
+
+# Run the app with specific profiles and system properties
+CMD ["java", "-Dspring.profiles.active=railway", "-Dwebdriver.chrome.driver=/usr/bin/chromedriver", "-jar", "app.jar"]

@@ -15,6 +15,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -65,41 +66,67 @@ public class AttendanceScraperService {
     @Value("${logging.level.org.openqa.selenium:INFO}")
     private String seleniumLogLevel;
 
+    // Perform a startup check to verify the environment
     @PostConstruct
     public void init() {
-        // Set selenium logging level
-        System.setProperty("webdriver.chrome.verboseLogging", "true");
-        System.setProperty("webdriver.chrome.logfile", "/tmp/chromedriver.log");
-        log.info("Selenium log level set to: {}", seleniumLogLevel);
-        log.info("Chrome binary located at: {}", "/opt/google/chrome/chrome");
-        log.info("ChromeDriver located at: {}", "/usr/bin/chromedriver");
+        log.info("AttendanceScraperService initialized");
+        try {
+            // Check Chrome installation
+            ProcessBuilder pb = new ProcessBuilder("which", "google-chrome");
+            Process p = pb.start();
+            int exitCode = p.waitFor();
+            log.info("Chrome check exit code: {}", exitCode);
+
+            // Check ChromeDriver
+            pb = new ProcessBuilder("which", "chromedriver");
+            p = pb.start();
+            exitCode = p.waitFor();
+            log.info("ChromeDriver check exit code: {}", exitCode);
+        } catch (Exception e) {
+            log.warn("Environment check failed: {}", e.getMessage());
+        }
     }
 
     private WebDriver setupWebDriver() {
         log.info("Setting up WebDriver for containerized environment");
 
         try {
-            // Set system property for ChromeDriver (even though it's already set in CMD)
-            System.setProperty("webdriver.chrome.driver", "/usr/bin/chromedriver");
+            log.info("Chrome paths to check:");
+            String[] chromePaths = {
+                    "/opt/google/chrome/chrome",
+                    "/usr/bin/google-chrome",
+                    "/usr/bin/google-chrome-stable"
+            };
+
+            String chromePath = null;
+            for (String path : chromePaths) {
+                if (new File(path).exists()) {
+                    chromePath = path;
+                    log.info("Found Chrome at: {}", path);
+                    break;
+                }
+            }
 
             ChromeOptions options = new ChromeOptions();
             options.addArguments("--headless=new");
             options.addArguments("--disable-gpu");
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
-            options.addArguments("--disable-extensions");
-            options.addArguments("--window-size=1920,1080");
             options.addArguments("--remote-allow-origins=*");
-            options.setBinary("/opt/google/chrome/chrome");  // This is the Chrome binary path in selenium/standalone-chrome
 
-            // Skip WebDriverManager as ChromeDriver is already installed
-            // WebDriverManager.chromedriver().setup(); // Comment this out
+            // Set binary path if found
+            if (chromePath != null) {
+                options.setBinary(chromePath);
+            }
+
+            // Let WebDriverManager handle finding ChromeDriver
+            WebDriverManager.chromedriver().setup();
 
             log.info("Creating ChromeDriver with options: {}", options);
             return new ChromeDriver(options);
         } catch (Exception e) {
             log.error("Error setting up WebDriver: {}", e.getMessage(), e);
-            throw e;
+            throw new RuntimeException("Failed to initialize WebDriver", e);
         }
     }
 
