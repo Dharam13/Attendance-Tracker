@@ -19,12 +19,14 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                                         Authentication authentication)
             throws IOException, ServletException {
 
-        String username = ((User) authentication.getPrincipal()).getUsername();
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
-        if ("admin".equals(username)) {
+        if (isAdmin) {
             response.sendRedirect("/admin/dashboard");
         } else {
             response.sendRedirect("/dashboard");
         }
+
     }
 }

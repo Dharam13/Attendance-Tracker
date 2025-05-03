@@ -43,6 +43,9 @@ public class User {
     @Column(nullable = false)
     private Boolean notificationsEnabled = true;
 
+    @Column(nullable = false)
+    private String role = "USER"; // Default role is USER
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Subject> subjects = new ArrayList<>();
 
