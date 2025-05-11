@@ -74,15 +74,15 @@ public class MainController {
         return "redirect:/login";
     }
 
-    @GetMapping("/admin/dashboard")
-    public String adminDashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
-        Optional<User> optUser = userService.findByUsername(userDetails.getUsername());
-        if (optUser.isPresent()) {
-            return "admin_dashboard";
-
-        }
-        return "redirect:/login";
-    }
+//    @GetMapping("/admin/dashboard")
+//    public String adminDashboard(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+//        Optional<User> optUser = userService.findByUsername(userDetails.getUsername());
+//        if (optUser.isPresent()) {
+//            return "admin_dashboard";
+//
+//        }
+//        return "redirect:/login";
+//    }
 
 
     @PostMapping("/sync-attendance")

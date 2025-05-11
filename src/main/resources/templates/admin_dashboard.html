@@ -1,10 +1,693 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Attendance Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Orbitron:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/admin_dashboard.css}">
 </head>
 <body>
-    <h1>Welcome to the Admin dashboard</h1>
+<!-- Particles Background -->
+<div class="particles-container">
+    <div class="particles"></div>
+</div>
+
+<div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h1>ADMIN<span class="highlight">PORTAL</span></h1>
+            <div class="pulse-line"></div>
+        </div>
+        <nav class="nav-menu">
+            <ul>
+                <li class="active"><a href="#"><i class="fas fa-home"></i>Dashboard</a></li>
+                <li><a href="#"><i class="fas fa-table"></i>Timetable</a></li>
+                <li><a href="#"><i class="fas fa-book"></i>Subjects</a></li>
+                <li><a href="#"><i class="fas fa-chalkboard-teacher"></i>Faculty</a></li>
+                <li><a href="#"><i class="fas fa-users"></i>Students</a></li>
+                <li><a href="#"><i class="fas fa-cog"></i>Settings</a></li>
+            </ul>
+        </nav>
+        <div class="user-info">
+            <div class="user-avatar">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="user-details">
+                <h3>Admin User</h3>
+                <p>System Administrator</p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <div class="header-title">
+                <h2>TIMETABLE MANAGEMENT</h2>
+                <p>Configure and update class schedules</p>
+            </div>
+            <div class="header-actions">
+                <button class="neon-button" id="openTimetableModal"><i class="fas fa-plus"></i> Add New Entry</button>
+            </div>
+        </div>
+
+        <!-- Alert Message -->
+        <div class="alert info" th:if="${message}">
+            <i class="fas fa-info-circle"></i>
+            <span th:text="${message}">Welcome to the admin dashboard. You can manage timetables and scheduling from here.</span>
+        </div>
+
+        <!-- Success Alert -->
+        <div class="alert success" th:if="${successMessage}">
+            <i class="fas fa-check-circle"></i>
+            <span th:text="${successMessage}">Operation completed successfully!</span>
+        </div>
+
+        <!-- Error Alert -->
+        <div class="alert error" th:if="${errorMessage}">
+            <i class="fas fa-exclamation-circle"></i>
+            <span th:text="${errorMessage}">An error occurred!</span>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs-container">
+            <div class="tabs">
+                <div class="tab active" data-tab="timetable">Timetable Management</div>
+                <div class="tab" data-tab="subjects">Subject Master</div>
+                <div class="tab" data-tab="scheduling">Scheduling Configuration</div>
+            </div>
+
+            <!-- Timetable Management Tab -->
+            <div class="tab-content active" id="timetable-tab">
+                <form th:action="@{/admin/timetable/filter}" method="GET" class="form-panel">
+                    <h3 class="section-title">Filter Timetable</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="department">Department</label>
+                            <select id="department" name="department" required>
+                                <option value="">Select Department</option>
+                                <option value="CE" th:selected="${param.department == 'CE'}">Computer Engineering (CE)</option>
+                                <option value="IT" th:selected="${param.department == 'IT'}">Information Technology (IT)</option>
+                                <option value="EC" th:selected="${param.department == 'EC'}">Electronics & Communication (EC)</option>
+                                <option value="ME" th:selected="${param.department == 'ME'}">Mechanical Engineering (ME)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="semester">Semester</label>
+                            <select id="semester" name="semester" required>
+                                <option value="">Select Semester</option>
+                                <option value="1" th:selected="${param.semester == '1'}">Semester 1</option>
+                                <option value="2" th:selected="${param.semester == '2'}">Semester 2</option>
+                                <option value="3" th:selected="${param.semester == '3'}">Semester 3</option>
+                                <option value="4" th:selected="${param.semester == '4'}">Semester 4</option>
+                                <option value="5" th:selected="${param.semester == '5'}">Semester 5</option>
+                                <option value="6" th:selected="${param.semester == '6'}">Semester 6</option>
+                                <option value="7" th:selected="${param.semester == '7'}">Semester 7</option>
+                                <option value="8" th:selected="${param.semester == '8'}">Semester 8</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="section">Section</label>
+                            <select id="section" name="section">
+                                <option value="">All Sections</option>
+                                <option value="A" th:selected="${param.section == 'A'}">Section A</option>
+                                <option value="B" th:selected="${param.section == 'B'}">Section B</option>
+                                <option value="C" th:selected="${param.section == 'C'}">Section C</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="day">Day</label>
+                            <select id="day" name="day">
+                                <option value="">All Days</option>
+                                <option value="Monday" th:selected="${param.day == 'Monday'}">Monday</option>
+                                <option value="Tuesday" th:selected="${param.day == 'Tuesday'}">Tuesday</option>
+                                <option value="Wednesday" th:selected="${param.day == 'Wednesday'}">Wednesday</option>
+                                <option value="Thursday" th:selected="${param.day == 'Thursday'}">Thursday</option>
+                                <option value="Friday" th:selected="${param.day == 'Friday'}">Friday</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="reset" class="neon-button clear-btn"><i class="fas fa-eraser"></i> Clear</button>
+                        <button type="submit" class="neon-button"><i class="fas fa-filter"></i> Apply Filter</button>
+                    </div>
+                </form>
+
+                <!-- Insert your timetable grid here -->
+                <!-- Timetable Grid -->
+                <div class="form-panel">
+                    <h3 class="section-title">Weekly Timetable</h3>
+                    <div class="timetable-grid">
+                        <!-- Headers -->
+                        <div class="timetable-header">Time</div>
+                        <div class="timetable-header">Monday</div>
+                        <div class="timetable-header">Tuesday</div>
+                        <div class="timetable-header">Wednesday</div>
+                        <div class="timetable-header">Thursday</div>
+                        <div class="timetable-header">Friday</div>
+
+                        <!-- 9:00 - 10:00 -->
+                        <div class="time-slot">9:00 - 10:00</div>
+                        <div class="timetable-cell" th:attr="data-day='Monday',data-time='9:00-10:00'" th:data-id="${timeTable9[0]?.id}">
+                            <div class="subject">Data Structures</div>
+                            <div class="faculty">Prof. Johnson</div>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Tuesday',data-time='9:00-10:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Wednesday',data-time='9:00-10:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell" th:attr="data-day='Thursday',data-time='9:00-10:00'" th:data-id="${timeTable9[3]?.id}">
+                            <div class="subject">Database Systems</div>
+                            <div class="faculty">Prof. Smith</div>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Friday',data-time='9:00-10:00'">
+                            <span>No Class</span>
+                        </div>
+
+                        <!-- 10:00 - 11:00 -->
+                        <div class="time-slot">10:00 - 11:00</div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Monday',data-time='10:00-11:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Tuesday',data-time='10:00-11:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell" th:attr="data-day='Wednesday',data-time='10:00-11:00'" th:data-id="${timeTable10[2]?.id}">
+                            <div class="subject">10:00 - 11:00</div>
+                            <div class="faculty">Class Time</div>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Thursday',data-time='10:00-11:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Friday',data-time='10:00-11:00'">
+                            <span>No Class</span>
+                        </div>
+
+                        <!-- 11:00 - 12:00 -->
+                        <div class="time-slot">11:00 - 12:00</div>
+                        <div class="timetable-cell" th:attr="data-day='Monday',data-time='11:00-12:00'" th:data-id="${timeTable11[0]?.id}">
+                            <div class="subject">Computer Networks</div>
+                            <div class="faculty">Prof. Williams</div>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Tuesday',data-time='11:00-12:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Wednesday',data-time='11:00-12:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Thursday',data-time='11:00-12:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Friday',data-time='11:00-12:00'">
+                            <span>No Class</span>
+                        </div>
+
+                        <!-- 12:00 - 1:00 -->
+                        <div class="time-slot">12:00 - 1:00</div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Monday',data-time='12:00-13:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Tuesday',data-time='12:00-13:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell" th:attr="data-day='Wednesday',data-time='12:00-13:00'" th:data-id="${timeTable12[2]?.id}">
+                            <div class="subject">12:00 - 1:00</div>
+                            <div class="faculty">Lunch Break</div>
+                        </div>
+                        <div class="timetable-cell" th:attr="data-day='Thursday',data-time='12:00-13:00'" th:data-id="${timeTable12[3]?.id}">
+                            <div class="subject">Lunch Break</div>
+                            <div class="faculty"></div>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Friday',data-time='12:00-13:00'">
+                            <span>No Class</span>
+                        </div>
+
+                        <!-- 1:00 - 2:00 -->
+                        <div class="time-slot">1:00 - 2:00</div>
+                        <div class="timetable-cell" th:attr="data-day='Monday',data-time='13:00-14:00'" th:data-id="${timeTable13[0]?.id}">
+                            <div class="subject">Operating Systems</div>
+                            <div class="faculty">Prof. Davis</div>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Tuesday',data-time='13:00-14:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Wednesday',data-time='13:00-14:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Thursday',data-time='13:00-14:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell" th:attr="data-day='Friday',data-time='13:00-14:00'" th:data-id="${timeTable13[4]?.id}">
+                            <div class="subject">1:00 - 2:00</div>
+                            <div class="faculty">Class Time</div>
+                        </div>
+
+                        <!-- 2:00 - 3:00 -->
+                        <div class="time-slot">2:00 - 3:00</div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Monday',data-time='14:00-15:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell" th:attr="data-day='Tuesday',data-time='14:00-15:00'" th:data-id="${timeTable14[1]?.id}">
+                            <div class="subject">2:00 - 3:00</div>
+                            <div class="faculty">Class Time</div>
+                        </div>
+                        <div class="timetable-cell" th:attr="data-day='Wednesday',data-time='14:00-15:00'" th:data-id="${timeTable14[2]?.id}">
+                            <div class="subject">Software Engineering</div>
+                            <div class="faculty">Prof. Wilson</div>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Thursday',data-time='14:00-15:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Friday',data-time='14:00-15:00'">
+                            <span>No Class</span>
+                        </div>
+
+                        <!-- 3:00 - 4:00 -->
+                        <div class="time-slot">3:00 - 4:00</div>
+                        <div class="timetable-cell" th:attr="data-day='Monday',data-time='15:00-16:00'" th:data-id="${timeTable15[0]?.id}">
+                            <div class="subject">Artificial Intelligence</div>
+                            <div class="faculty">Prof. Taylor</div>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Tuesday',data-time='15:00-16:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Wednesday',data-time='15:00-16:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell empty-cell" th:attr="data-day='Thursday',data-time='15:00-16:00'">
+                            <span>No Class</span>
+                        </div>
+                        <div class="timetable-cell" th:attr="data-day='Friday',data-time='15:00-16:00'" th:data-id="${timeTable15[4]?.id}">
+                            <div class="subject">3:00 - 4:00</div>
+                            <div class="faculty">Class Time</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timetable Entries -->
+                <div class="form-panel">
+                    <h3 class="section-title">Current Timetable Entries</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>Department</th>
+                                <th>Semester</th>
+                                <th>Section</th>
+                                <th>Day</th>
+                                <th>Time</th>
+                                <th>Subject</th>
+                                <th>Faculty</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="entry : ${timetableEntries}" th:if="${timetableEntries != null}">
+                                <td th:text="${entry.department}">CE</td>
+                                <td th:text="${entry.semester}">5</td>
+                                <td th:text="${entry.section}">A</td>
+                                <td th:text="${entry.day}">Monday</td>
+                                <td th:text="${entry.timeSlot}">9:00 - 10:00</td>
+                                <td th:text="${entry.subject}">Data Structures</td>
+                                <td th:text="${entry.faculty}">Prof. Johnson</td>
+                                <td class="action-btns">
+                                    <button class="edit-btn" th:data-id="${entry.id}"><i class="fas fa-edit"></i></button>
+                                    <form th:action="@{/admin/timetable/delete}" method="POST" style="display:inline;">
+                                        <input type="hidden" name="id" th:value="${entry.id}" />
+                                        <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this entry?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${timetableEntries == null || timetableEntries.isEmpty()}">
+                                <td colspan="8" style="text-align: center;">No entries found</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subject Master Tab -->
+            <div class="tab-content" id="subjects-tab">
+                <div class="form-panel">
+                    <h3 class="section-title">Add/Edit Subject</h3>
+                    <form th:action="@{/admin/subjects/save}" method="POST">
+                        <input type="hidden" name="subjectId" th:value="${subjectToEdit != null} ? ${subjectToEdit.id} : ''" />
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="subjectCode">Subject Code</label>
+                                <input type="text" id="subjectCode" name="subjectCode" required
+                                       th:value="${subjectToEdit != null} ? ${subjectToEdit.code} : ''" />
+                            </div>
+                            <div class="form-group">
+                                <label for="subjectName">Subject Name</label>
+                                <input type="text" id="subjectName" name="subjectName" required
+                                       th:value="${subjectToEdit != null} ? ${subjectToEdit.name} : ''" />
+                            </div>
+                            <div class="form-group">
+                                <label for="subjectDepartment">Department</label>
+                                <select id="subjectDepartment" name="subjectDepartment" required>
+                                    <option value="">Select Department</option>
+                                    <option value="CE" th:selected="${subjectToEdit != null && subjectToEdit.department == 'CE'}">Computer Engineering (CE)</option>
+                                    <option value="IT" th:selected="${subjectToEdit != null && subjectToEdit.department == 'IT'}">Information Technology (IT)</option>
+                                    <option value="EC" th:selected="${subjectToEdit != null && subjectToEdit.department == 'EC'}">Electronics & Communication (EC)</option>
+                                    <option value="ME" th:selected="${subjectToEdit != null && subjectToEdit.department == 'ME'}">Mechanical Engineering (ME)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="subjectSemester">Semester</label>
+                                <select id="subjectSemester" name="subjectSemester" required>
+                                    <option value="">Select Semester</option>
+                                    <option value="1" th:selected="${subjectToEdit != null && subjectToEdit.semester == 1}">Semester 1</option>
+                                    <option value="2" th:selected="${subjectToEdit != null && subjectToEdit.semester == 2}">Semester 2</option>
+                                    <option value="3" th:selected="${subjectToEdit != null && subjectToEdit.semester == 3}">Semester 3</option>
+                                    <option value="4" th:selected="${subjectToEdit != null && subjectToEdit.semester == 4}">Semester 4</option>
+                                    <option value="5" th:selected="${subjectToEdit != null && subjectToEdit.semester == 5}">Semester 5</option>
+                                    <option value="6" th:selected="${subjectToEdit != null && subjectToEdit.semester == 6}">Semester 6</option>
+                                    <option value="7" th:selected="${subjectToEdit != null && subjectToEdit.semester == 7}">Semester 7</option>
+                                    <option value="8" th:selected="${subjectToEdit != null && subjectToEdit.semester == 8}">Semester 8</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="reset" class="neon-button clear-btn"><i class="fas fa-eraser"></i> Clear</button>
+                            <button type="submit" class="neon-button">
+                                <i class="fas fa-save"></i>
+                                <span th:text="${subjectToEdit != null} ? 'Update Subject' : 'Save Subject'">Save Subject</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="form-panel">
+                    <h3 class="section-title">Subject List</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Subject Name</th>
+                                <th>Department</th>
+                                <th>Semester</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="subject : ${subjects}" th:if="${subjects != null}">
+                                <td th:text="${subject.code}">CS501</td>
+                                <td th:text="${subject.name}">Database Management Systems</td>
+                                <td th:text="${subject.department}">CE</td>
+                                <td th:text="${subject.semester}">5</td>
+                                <td class="action-btns">
+                                    <form th:action="@{/admin/subjects/edit}" method="POST" style="display:inline;">
+                                        <input type="hidden" name="id" th:value="${subject.id}" />
+                                        <button type="submit" class="edit-btn"><i class="fas fa-edit"></i></button>
+                                    </form>
+                                    <form th:action="@{/admin/subjects/delete}" method="POST" style="display:inline;">
+                                        <input type="hidden" name="id" th:value="${subject.id}" />
+                                        <button type="submit" class="delete-btn" onclick="return confirm('Are you sure you want to delete this subject?')">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr th:if="${subjects == null || subjects.isEmpty()}">
+                                <td colspan="7" style="text-align: center;">No subjects found</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduling Configuration Tab -->
+            <div class="tab-content" id="scheduling-tab">
+                <div class="form-panel">
+                    <h3 class="section-title">Attendance Automation Settings</h3>
+                    <form th:action="@{/admin/scheduling/save}" method="POST">
+                        <div class="form-group switch-label">
+                            <label class="switch">
+                                <input type="checkbox" name="attendanceSchedulingEnabled" id="attendanceSchedulingEnabled"
+                                       th:checked="${schedulingConfig != null && schedulingConfig.enabled}">
+                                <span class="slider"></span>
+                            </label>
+                            <span>Enable Automated Attendance Tracking</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Configure When to Trigger Attendance Marking</label>
+                            <div class="time-inputs">
+                                <div class="form-group">
+                                    <label for="minutesBefore">Minutes Before Class</label>
+                                    <input type="number" id="minutesBefore" name="minutesBefore" min="0" max="30"
+                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.minutesBefore} : '10'" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="minutesAfter">Minutes After Class</label>
+                                    <input type="number" id="minutesAfter" name="minutesAfter" min="0" max="30"
+                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.minutesAfter} : '5'" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Reporting Schedule</label>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="dailyReportTime">Daily Report Time</label>
+                                    <input type="time" id="dailyReportTime" name="dailyReportTime"
+                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.dailyReportTime} : '17:00'" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="weeklyReportDay">Weekly Report Day</label>
+                                    <select id="weeklyReportDay" name="weeklyReportDay">
+                                        <option value="Monday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Monday'}">Monday</option>
+                                        <option value="Tuesday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Tuesday'}">Tuesday</option>
+                                        <option value="Wednesday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Wednesday'}">Wednesday</option>
+                                        <option value="Thursday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Thursday'}">Thursday</option>
+                                        <option value="Friday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Friday'}">Friday</option>
+                                        <option value="Saturday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Saturday'}">Saturday</option>
+                                        <option value="Sunday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Sunday'}">Sunday</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="weeklyReportTime">Weekly Report Time</label>
+                                    <input type="time" id="weeklyReportTime" name="weeklyReportTime"
+                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.weeklyReportTime} : '10:00'" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="monthlyReportDay">Monthly Report Day</label>
+                                    <select id="monthlyReportDay" name="monthlyReportDay">
+                                        <option value="1" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 1}">1st</option>
+                                        <option value="2" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 2}">2nd</option>
+                                        <option value="3" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 3}">3rd</option>
+                                        <option value="4" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 4}">4th</option>
+                                        <option value="5" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 5}">5th</option>
+                                        <option value="last" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 'last'}">Last Day</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="monthlyReportTime">Monthly Report Time</label>
+                                    <input type="time" id="monthlyReportTime" name="monthlyReportTime"
+                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.monthlyReportTime} : '12:00'" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Notification Settings</label>
+                            <div class="form-grid">
+                                <div class="form-group switch-label">
+                                    <label class="switch">
+                                        <input type="checkbox" name="emailNotificationsEnabled" id="emailNotificationsEnabled"
+                                               th:checked="${schedulingConfig != null && schedulingConfig.emailNotificationsEnabled}">
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span>Email Notifications</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="cron-expression">
+                            <h4>Generated Cron Expressions</h4>
+                            <pre id="attendanceCron" th:text="${schedulingConfig != null} ? ${schedulingConfig.attendanceCronExpression} : '* * * * * ?'">* * * * * ?</pre>
+                            <pre id="dailyReportCron" th:text="${schedulingConfig != null} ? ${schedulingConfig.dailyReportCronExpression} : '0 0 17 * * ?'">0 0 17 * * ?</pre>
+                            <pre id="weeklyReportCron" th:text="${schedulingConfig != null} ? ${schedulingConfig.weeklyReportCronExpression} : '0 0 10 ? * MON'">0 0 10 ? * MON</pre>
+                            <pre id="monthlyReportCron" th:text="${schedulingConfig != null} ? ${schedulingConfig.monthlyReportCronExpression} : '0 0 12 1 * ?'">0 0 12 1 * ?</pre>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="reset" class="neon-button clear-btn"><i class="fas fa-eraser"></i> Reset</button>
+                            <button type="submit" class="neon-button"><i class="fas fa-save"></i> Save Configuration</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="form-panel">
+                    <h3 class="section-title">Scheduling Logs</h3>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Event Type</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="log : ${schedulingLogs}" th:if="${schedulingLogs != null}">
+                                <td th:text="${#temporals.format(log.timestamp, 'dd-MM-yyyy HH:mm:ss')}">11-05-2025 09:30:15</td>
+                                <td th:text="${log.eventType}">Attendance Marking</td>
+                                <td th:text="${log.status}" th:class="${log.status == 'SUCCESS' ? 'success' : 'error'}">SUCCESS</td>
+                                <td th:text="${log.details}">CE-5-A Monday 9:00-10:00 Data Structures</td>
+                            </tr>
+                            <tr th:if="${schedulingLogs == null || schedulingLogs.isEmpty()}">
+                                <td colspan="4" style="text-align: center;">No scheduling logs found</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Add Timetable Entry Modal -->
+<div class="modal-backdrop" id="timetableModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="modalTitle">Add Timetable Entry</h3>
+            <button class="close-modal" id="closeModal">&times;</button>
+        </div>
+        <form id="timetableForm" th:action="@{/admin/timetable/save}" method="POST">
+            <input type="hidden" id="entryId" name="id" value="" />
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="modal-department">Department</label>
+                    <select id="modal-department" name="department" required>
+                        <option value="">Select Department</option>
+                        <option value="CE">Computer Engineering (CE)</option>
+                        <option value="IT">Information Technology (IT)</option>
+                        <option value="EC">Electronics & Communication (EC)</option>
+                        <option value="ME">Mechanical Engineering (ME)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modal-semester">Semester</label>
+                    <select id="modal-semester" name="semester" required>
+                        <option value="">Select Semester</option>
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                        <option value="6">Semester 6</option>
+                        <option value="7">Semester 7</option>
+                        <option value="8">Semester 8</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modal-section">Section</label>
+                    <select id="modal-section" name="section" required>
+                        <option value="">Select Section</option>
+                        <option value="A">Section A</option>
+                        <option value="B">Section B</option>
+                        <option value="C">Section C</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modal-day">Day</label>
+                    <select id="modal-day" name="day" required>
+                        <option value="">Select Day</option>
+                        <option value="Monday">Monday</option>
+                        <option value="Tuesday">Tuesday</option>
+                        <option value="Wednesday">Wednesday</option>
+                        <option value="Thursday">Thursday</option>
+                        <option value="Friday">Friday</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modal-timeSlot">Time Slot</label>
+                    <select id="modal-timeSlot" name="timeSlot" required>
+                        <option value="">Select Time Slot</option>
+                        <option value="9:00-10:00">9:00 - 10:00</option>
+                        <option value="10:00-11:00">10:00 - 11:00</option>
+                        <option value="11:00-12:00">11:00 - 12:00</option>
+                        <option value="12:00-13:00">12:00 - 1:00</option>
+                        <option value="13:00-14:00">1:00 - 2:00</option>
+                        <option value="14:00-15:00">2:00 - 3:00</option>
+                        <option value="15:00-16:00">3:00 - 4:00</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-subject">Subject</label>
+                    <input type="text" id="modal-subject" name="subject" placeholder="Enter Subject Name" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-faculty">Faculty</label>
+                    <input type="text" id="modal-faculty" name="faculty" placeholder="Enter Faculty Name" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="modal-room">Room Number</label>
+                    <input type="text" id="modal-room" name="room" placeholder="Enter Room No." required />
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="neon-button" onclick="closeTimetableModal()">Cancel</button>
+                <button type="submit" class="neon-button primary">
+                    <i class="fas fa-save"></i>
+                    <span>Save Entry</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript for Tab Switching and Modal Functionality -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                const targetTab = this.getAttribute('data-tab') + '-tab'; // maps "subjects" → "subjects-tab"
+
+                // Remove 'active' class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+
+                // Hide all tab contents
+                tabContents.forEach(content => content.style.display = 'none');
+
+                // Add 'active' to clicked tab
+                this.classList.add('active');
+
+                // Show the matching tab content
+                const activeTabContent = document.getElementById(targetTab);
+                if (activeTabContent) {
+                    activeTabContent.style.display = 'block';
+                }
+            });
+        });
+
+        // Auto-click the first tab on load
+        if (tabs.length > 0) {
+            tabs[0].click();
+        }
+    });
+</script>
 </body>
 </html>
