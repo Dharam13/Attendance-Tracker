@@ -30,6 +30,8 @@ public class AttendanceService {
         // Update the current attendance in the subject
         Subject subject = record.getSubject();
         subject.setCurrentAttendance(record.getAttendancePercentage());
+        subject.setAttendedClasses(record.getAttendedClasses());
+        subject.setTotalClasses(record.getTotalClasses());
         subjectRepository.save(subject);
 
         // Check if attendance is below threshold and create notification if needed
@@ -45,7 +47,8 @@ public class AttendanceService {
         notification.setUser(record.getUser());
         notification.setSubject(record.getSubject());
         notification.setMessage("Your attendance in " + record.getSubject().getName() +
-                " is below the threshold at " + record.getAttendancePercentage() + "%");
+                " (" + record.getSubject().getClassType() + ") is below the threshold at "
+                + record.getAttendancePercentage() + "%");
         notification.setCreatedAt(LocalDateTime.now());
         notificationRepository.save(notification);
 
@@ -84,16 +87,26 @@ public class AttendanceService {
     }
 
     public Subject saveOrUpdateSubject(Subject subject) {
-        // Check if subject already exists
-        Optional<Subject> existingSubject = subjectRepository.findByUserAndCode(subject.getUser(), subject.getCode());
+        // Check if subject already exists with the same code AND class type
+        Optional<Subject> existingSubject = subjectRepository.findByUserAndCodeAndClassType(
+                subject.getUser(),
+                subject.getCode(),
+                subject.getClassType()
+        );
 
         if (existingSubject.isPresent()) {
             Subject updatedSubject = existingSubject.get();
             updatedSubject.setName(subject.getName());
             updatedSubject.setCurrentAttendance(subject.getCurrentAttendance());
+            updatedSubject.setAttendedClasses(subject.getAttendedClasses());
+            updatedSubject.setTotalClasses(subject.getTotalClasses());
+            log.info("Updating existing subject: {} ({}) with attendance: {}%",
+                    updatedSubject.getName(), updatedSubject.getClassType(), updatedSubject.getCurrentAttendance());
             return subjectRepository.save(updatedSubject);
         }
 
+        log.info("Creating new subject: {} ({}) with attendance: {}%",
+                subject.getName(), subject.getClassType(), subject.getCurrentAttendance());
         return subjectRepository.save(subject);
     }
 
