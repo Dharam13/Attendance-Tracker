@@ -427,7 +427,7 @@
                 </div>
             </div>
 
-            <!-- Scheduling Configuration Tab -->
+            <!-- Simplified Scheduling Configuration Tab -->
             <div class="tab-content" id="scheduling-tab">
                 <div class="form-panel">
                     <h3 class="section-title">Attendance Automation Settings</h3>
@@ -442,61 +442,31 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Configure When to Trigger Attendance Marking</label>
-                            <div class="time-inputs">
-                                <div class="form-group">
-                                    <label for="minutesBefore">Minutes Before Class</label>
-                                    <input type="number" id="minutesBefore" name="minutesBefore" min="0" max="30"
-                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.minutesBefore} : '10'" />
-                                </div>
-                                <div class="form-group">
-                                    <label for="minutesAfter">Minutes After Class</label>
-                                    <input type="number" id="minutesAfter" name="minutesAfter" min="0" max="30"
-                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.minutesAfter} : '5'" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Reporting Schedule</label>
+                            <label>Cron Expressions</label>
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label for="dailyReportTime">Daily Report Time</label>
-                                    <input type="time" id="dailyReportTime" name="dailyReportTime"
-                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.dailyReportTime} : '17:00'" />
+                                    <label for="attendanceCronExpression">Attendance Check Schedule</label>
+                                    <input type="text" id="attendanceCronExpression" name="attendanceCronExpression" class="form-control"
+                                           th:value="${schedulingConfig != null ? schedulingConfig.attendanceCronExpression : '0 */30 8-18 ? * MON-FRI'}" />
+                                    <small class="form-text text-muted">Default: Every 30 minutes between 8 AM and 6 PM, Monday to Friday</small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="weeklyReportDay">Weekly Report Day</label>
-                                    <select id="weeklyReportDay" name="weeklyReportDay">
-                                        <option value="Monday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Monday'}">Monday</option>
-                                        <option value="Tuesday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Tuesday'}">Tuesday</option>
-                                        <option value="Wednesday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Wednesday'}">Wednesday</option>
-                                        <option value="Thursday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Thursday'}">Thursday</option>
-                                        <option value="Friday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Friday'}">Friday</option>
-                                        <option value="Saturday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Saturday'}">Saturday</option>
-                                        <option value="Sunday" th:selected="${schedulingConfig != null && schedulingConfig.weeklyReportDay == 'Sunday'}">Sunday</option>
-                                    </select>
+                                    <label for="dailyReportCronExpression">Daily Report Schedule</label>
+                                    <input type="text" id="dailyReportCronExpression" name="dailyReportCronExpression" class="form-control"
+                                           th:value="${schedulingConfig != null ? schedulingConfig.dailyReportCronExpression : '0 0 17 * * ?'}" />
+                                    <small class="form-text text-muted">Default: Every day at 5 PM</small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="weeklyReportTime">Weekly Report Time</label>
-                                    <input type="time" id="weeklyReportTime" name="weeklyReportTime"
-                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.weeklyReportTime} : '10:00'" />
+                                    <label for="weeklyReportCronExpression">Weekly Report Schedule</label>
+                                    <input type="text" id="weeklyReportCronExpression" name="weeklyReportCronExpression" class="form-control"
+                                           th:value="${schedulingConfig != null ? schedulingConfig.weeklyReportCronExpression : '0 0 10 ? * MON'}" />
+                                    <small class="form-text text-muted">Default: Every Monday at 10 AM</small>
                                 </div>
                                 <div class="form-group">
-                                    <label for="monthlyReportDay">Monthly Report Day</label>
-                                    <select id="monthlyReportDay" name="monthlyReportDay">
-                                        <option value="1" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 1}">1st</option>
-                                        <option value="2" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 2}">2nd</option>
-                                        <option value="3" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 3}">3rd</option>
-                                        <option value="4" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 4}">4th</option>
-                                        <option value="5" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 5}">5th</option>
-                                        <option value="last" th:selected="${schedulingConfig != null && schedulingConfig.monthlyReportDay == 'last'}">Last Day</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="monthlyReportTime">Monthly Report Time</label>
-                                    <input type="time" id="monthlyReportTime" name="monthlyReportTime"
-                                           th:value="${schedulingConfig != null} ? ${schedulingConfig.monthlyReportTime} : '12:00'" />
+                                    <label for="monthlyReportCronExpression">Monthly Report Schedule</label>
+                                    <input type="text" id="monthlyReportCronExpression" name="monthlyReportCronExpression" class="form-control"
+                                           th:value="${schedulingConfig != null ? schedulingConfig.monthlyReportCronExpression : '0 0 12 1 * ?'}" />
+                                    <small class="form-text text-muted">Default: 1st day of every month at 12 PM</small>
                                 </div>
                             </div>
                         </div>
@@ -515,12 +485,22 @@
                             </div>
                         </div>
 
-                        <div class="cron-expression">
-                            <h4>Generated Cron Expressions</h4>
-                            <pre id="attendanceCron" th:text="${schedulingConfig != null} ? ${schedulingConfig.attendanceCronExpression} : '* * * * * ?'">* * * * * ?</pre>
-                            <pre id="dailyReportCron" th:text="${schedulingConfig != null} ? ${schedulingConfig.dailyReportCronExpression} : '0 0 17 * * ?'">0 0 17 * * ?</pre>
-                            <pre id="weeklyReportCron" th:text="${schedulingConfig != null} ? ${schedulingConfig.weeklyReportCronExpression} : '0 0 10 ? * MON'">0 0 10 ? * MON</pre>
-                            <pre id="monthlyReportCron" th:text="${schedulingConfig != null} ? ${schedulingConfig.monthlyReportCronExpression} : '0 0 12 1 * ?'">0 0 12 1 * ?</pre>
+                        <div class="form-group">
+                            <label>Quick Test</label>
+                            <div class="test-buttons">
+                                <button type="button" class="btn btn-secondary test-btn" onclick="testScheduledTask('attendance')">
+                                    Test Attendance Check
+                                </button>
+                                <button type="button" class="btn btn-secondary test-btn" onclick="testScheduledTask('daily')">
+                                    Test Daily Report
+                                </button>
+                                <button type="button" class="btn btn-secondary test-btn" onclick="testScheduledTask('weekly')">
+                                    Test Weekly Report
+                                </button>
+                                <button type="button" class="btn btn-secondary test-btn" onclick="testScheduledTask('monthly')">
+                                    Test Monthly Report
+                                </button>
+                            </div>
                         </div>
 
                         <div class="form-actions">
@@ -544,7 +524,7 @@
                             </thead>
                             <tbody>
                             <tr th:each="log : ${schedulingLogs}" th:if="${schedulingLogs != null}">
-                                <td th:text="${#temporals.format(log.timestamp, 'dd-MM-yyyy HH:mm:ss')}">11-05-2025 09:30:15</td>
+                                <td th:text="${#temporals.format(log.timestamp, 'dd-MM-yyyy HH:mm:ss')}">11-05-2023 09:30:15</td>
                                 <td th:text="${log.eventType}">Attendance Marking</td>
                                 <td th:text="${log.status}" th:class="${log.status == 'SUCCESS' ? 'success' : 'error'}">SUCCESS</td>
                                 <td th:text="${log.details}">CE-5-A Monday 9:00-10:00 Data Structures</td>
@@ -557,9 +537,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
-</div>
 
 <!-- Add Timetable Entry Modal -->
 <div class="modal-backdrop" id="timetableModal">
@@ -689,5 +666,6 @@
         }
     });
 </script>
+<script src="/Static/js/scheduling.js"></script>
 </body>
 </html>

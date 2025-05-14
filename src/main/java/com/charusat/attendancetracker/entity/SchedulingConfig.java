@@ -5,10 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 /**
- * SchedulingConfig Entity
+ * SchedulingConfig Entity - Simplified version
  */
 @Entity
 @Table(name = "scheduling_config")
@@ -25,38 +23,39 @@ public class SchedulingConfig {
     private boolean enabled;
 
     @Column(nullable = false)
-    private int minutesBefore;
-
-    @Column(nullable = false)
-    private int minutesAfter;
-
-    @Column
-    private String dailyReportTime;
-
-    @Column
-    private String weeklyReportDay;
-
-    @Column
-    private String weeklyReportTime;
-
-    @Column
-    private String monthlyReportDay;
-
-    @Column
-    private String monthlyReportTime;
-
-    @Column
     private boolean emailNotificationsEnabled;
 
-    @Column
+    @Column(nullable = false)
     private String attendanceCronExpression;
 
-    @Column
+    @Column(nullable = false)
     private String dailyReportCronExpression;
 
-    @Column
+    @Column(nullable = false)
     private String weeklyReportCronExpression;
 
-    @Column
+    @Column(nullable = false)
     private String monthlyReportCronExpression;
+
+    // These fields are kept for backward compatibility but won't be used actively
+    @Column
+    private int minutesBefore = 0;
+
+    @Column
+    private int minutesAfter = 0;
+
+    @Column
+    private String dailyReportTime = "17:00";
+
+    @Column
+    private String weeklyReportDay = "Monday";
+
+    @Column
+    private String weeklyReportTime = "10:00";
+
+    @Column
+    private String monthlyReportDay = "1";
+
+    @Column
+    private String monthlyReportTime = "12:00";
 }

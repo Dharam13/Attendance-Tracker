@@ -1,34 +1,35 @@
+// SchedulingLog.java
 package com.charusat.attendancetracker.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+//import javax.persistence.*;
 import java.time.LocalDateTime;
-/**
- * SchedulingLog Entity
- */
+
 @Entity
-@Table(name = "scheduling_logs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class SchedulingLog {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private LocalDateTime timestamp;
-
-    @Column(nullable = false)
     private String eventType;
-
-    @Column(nullable = false)
     private String status;
-
-    @Column
     private String details;
+
+    // Constructor with required fields
+    public SchedulingLog(String eventType, String status, String details) {
+        this.timestamp = LocalDateTime.now();
+        this.eventType = eventType;
+        this.status = status;
+        this.details = details;
+    }
 }

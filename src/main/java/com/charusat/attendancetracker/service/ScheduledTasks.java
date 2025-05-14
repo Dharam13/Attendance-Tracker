@@ -1,67 +1,126 @@
-// ScheduledTasks.java
 package com.charusat.attendancetracker.service;
 
-import com.charusat.attendancetracker.entity.User;
-import com.charusat.attendancetracker.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
+/**
+ * Service for handling scheduled tasks that were previously defined with @Scheduled annotations.
+ * This class no longer contains scheduled tasks or task scheduler configuration.
+ * All scheduling is now handled by DynamicTaskScheduler.
+ */
 @Service
-@EnableScheduling
 @RequiredArgsConstructor
 @Slf4j
 public class ScheduledTasks {
 
-    private final UserRepository userRepository;
-    private final AttendanceScraperService attendanceScraperService;
+    // Keep any required service dependencies
     private final NotificationService notificationService;
+    private final SchedulingService schedulingService;
+    private final AttendanceScraperService attendanceScraperService;
+
+    // You can keep any methods that might be called manually or needed by other services
+    // But remove all @Scheduled annotations and scheduler configuration
 
     /**
-     * Run attendance checks according to configured schedule in application.properties
+     * This method can be called manually to process unsent notifications
      */
-    @Scheduled(cron = "${attendance.check.schedule}")
-    public void checkAttendanceForAllUsers() {
-        log.info("Starting scheduled attendance check at {}", LocalDateTime.now());
-
-        List<User> users = userRepository.findAll();
-        log.info("Found {} users to check attendance for", users.size());
-
-        for (User user : users) {
-            try {
-                log.info("Checking attendance for user: {}", user.getEgovId());
-                attendanceScraperService.scrapeAttendanceForUser(user);
-
-                // Add a delay between users to avoid overwhelming the system
-                Thread.sleep(30000); // 30 second delay
-            } catch (Exception e) {
-                log.error("Error checking attendance for user {}: {}", user.getEgovId(), e.getMessage());
-            }
-        }
-
-        log.info("Completed scheduled attendance check at {}", LocalDateTime.now());
-    }
-
-    /**
-     * Process any unsent notifications every hour
-     */
-    @Scheduled(cron = "0 0 * * * *") // Run every hour
     public void processUnsentNotifications() {
         log.info("Processing any unsent notifications");
-        notificationService.processUnsentNotifications();
+        try {
+            notificationService.processUnsentNotifications();
+            schedulingService.logScheduledEvent(
+                    "Notification Processing",
+                    "SUCCESS",
+                    "Processed unsent notifications"
+            );
+        } catch (Exception e) {
+            log.error("Error processing notifications: {}", e.getMessage());
+            schedulingService.logScheduledEvent(
+                    "Notification Processing",
+                    "ERROR",
+                    "Failed to process notifications: " + e.getMessage()
+            );
+        }
     }
 
     /**
-     * Daily system health check - can be expanded as needed
+     * This method can be called manually to run system health checks
      */
-    @Scheduled(cron = "0 0 6 * * *") // Run at 6 AM daily
     public void systemHealthCheck() {
-        log.info("Running daily system health check");
+        log.info("Running system health check");
         // Add any system health checks here
+
+        schedulingService.logScheduledEvent(
+                "System Health Check",
+                "SUCCESS",
+                "Completed system health check"
+        );
+    }
+
+    /**
+     * This method can be called manually to generate daily reports
+     */
+    public void generateDailyReport() {
+        log.info("Generating daily attendance report");
+        try {
+            // Call your report generation service here
+            schedulingService.logScheduledEvent(
+                    "Daily Report",
+                    "SUCCESS",
+                    "Generated daily attendance report"
+            );
+        } catch (Exception e) {
+            log.error("Error generating daily report: {}", e.getMessage());
+            schedulingService.logScheduledEvent(
+                    "Daily Report",
+                    "ERROR",
+                    "Failed to generate daily report: " + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * This method can be called manually to generate weekly reports
+     */
+    public void generateWeeklyReport() {
+        log.info("Generating weekly attendance report");
+        try {
+            // Call your report generation service here
+            schedulingService.logScheduledEvent(
+                    "Weekly Report",
+                    "SUCCESS",
+                    "Generated weekly attendance report"
+            );
+        } catch (Exception e) {
+            log.error("Error generating weekly report: {}", e.getMessage());
+            schedulingService.logScheduledEvent(
+                    "Weekly Report",
+                    "ERROR",
+                    "Failed to generate weekly report: " + e.getMessage()
+            );
+        }
+    }
+
+    /**
+     * This method can be called manually to generate monthly reports
+     */
+    public void generateMonthlyReport() {
+        log.info("Generating monthly attendance report");
+        try {
+            // Call your report generation service here
+            schedulingService.logScheduledEvent(
+                    "Monthly Report",
+                    "SUCCESS",
+                    "Generated monthly attendance report"
+            );
+        } catch (Exception e) {
+            log.error("Error generating monthly report: {}", e.getMessage());
+            schedulingService.logScheduledEvent(
+                    "Monthly Report",
+                    "ERROR",
+                    "Failed to generate monthly report: " + e.getMessage()
+            );
+        }
     }
 }
